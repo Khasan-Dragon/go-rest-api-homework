@@ -56,17 +56,17 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 	// так как все успешно, то статус OK
 	w.WriteHeader(http.StatusOK)
 	// записываем сериализованные в JSON данные в тело ответа
-	w.Write(resp)
+	value, err := w.Write(resp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Printf("%v", value)
 }
 
 func postTasks(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	var buf bytes.Buffer
-
-	if _, ok := tasks[task.ID]; ok {
-		http.Error(w, "id задачи занят", http.StatusBadRequest)
-		return
-	}
 
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
@@ -76,6 +76,11 @@ func postTasks(w http.ResponseWriter, r *http.Request) {
 
 	if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if _, ok := tasks[task.ID]; ok {
+		http.Error(w, "id задачи занят", http.StatusBadRequest)
 		return
 	}
 
