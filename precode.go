@@ -56,12 +56,11 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 	// так как все успешно, то статус OK
 	w.WriteHeader(http.StatusOK)
 	// записываем сериализованные в JSON данные в тело ответа
-	value, err := w.Write(resp)
+	_, err = w.Write(resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("%v", value)
 }
 
 func postTasks(w http.ResponseWriter, r *http.Request) {
@@ -108,12 +107,11 @@ func getTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	value, err := w.Write(resp)
+	_, err = w.Write(resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("%v", value)
 }
 
 func deleteTask(w http.ResponseWriter, r *http.Request) {
