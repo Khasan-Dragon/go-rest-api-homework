@@ -42,6 +42,10 @@ var tasks = map[string]Task{
 
 // Ниже напишите обработчики для каждого эндпоинта
 func getTasks(w http.ResponseWriter, r *http.Request) {
+
+	// в заголовок записываем тип контента, у нас это данные в формате JSON
+	w.Header().Set("Content-Type", "application/json")
+
 	// сериализуем данные из слайса tasks
 	resp, err := json.Marshal(tasks)
 	if err != nil {
@@ -49,8 +53,6 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// в заголовок записываем тип контента, у нас это данные в формате JSON
-	w.Header().Set("Content-Type", "application/json")
 	// так как все успешно, то статус OK
 	w.WriteHeader(http.StatusOK)
 	// записываем сериализованные в JSON данные в тело ответа
@@ -60,6 +62,11 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 func postTasks(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	var buf bytes.Buffer
+
+	if _, ok := tasks[task.ID]; ok {
+		http.Error(w, "id задачи занят", http.StatusBadRequest)
+		return
+	}
 
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
@@ -95,7 +102,13 @@ func getTask(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+
+	value, err := w.Write(resp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Printf("%v", value)
 }
 
 func deleteTask(w http.ResponseWriter, r *http.Request) {
@@ -107,17 +120,9 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//resp, err := json.Marshal(task)
-	//if err != nil {
-	//	http.Error(w, err.Error(), http.StatusBadRequest)
-	//	return
-	//}
-
 	delete(tasks, task.ID)
 
-	//w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//w.Write(resp)
 }
 
 func main() {
